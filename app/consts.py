@@ -1,0 +1,347 @@
+import re
+import string
+
+punct_to_remove = string.punctuation
+
+# Reference : https://github.com/NeelShah18/emot/blob/master/emot/emo_unicode.py
+emoticons = [':‑\\)',
+             ':\\)',
+             ':-\\]',
+             ':\\]',
+             ':-3',
+             ':3',
+             ':->',
+             ':>',
+             '8-\\)',
+             ':o\\)',
+             ':-\\}',
+             ':\\}',
+             ':-\\)',
+             ':c\\)',
+             ':\\^\\)',
+             '=\\]',
+             '=\\)',
+             ':‑D',
+             ':D',
+             '8‑D',
+             '8D',
+             'X‑D',
+             'XD',
+             '=D',
+             '=3',
+             'B\\^D',
+             ':-\\)\\)',
+             ':‑\\(',
+             ':-\\(',
+             ':\\(',
+             ':‑c',
+             ':c',
+             ':‑<',
+             ':<',
+             ':‑\\[',
+             ':\\[',
+             ':-\\|\\|',
+             '>:\\[',
+             ':\\{',
+             ':@',
+             '>:\\(',
+             ":'‑\\(",
+             ":'\\(",
+             ":'‑\\)",
+             ":'\\)",
+             "D‑':",
+             'D:<',
+             'D:',
+             'D8',
+             'D;',
+             'D=',
+             'DX',
+             ':‑O',
+             ':O',
+             ':‑o',
+             ':o',
+             ':-0',
+             '8‑0',
+             '>:O',
+             ':-\\*',
+             ':\\*',
+             ':X',
+             ';‑\\)',
+             ';\\)',
+             '\\*-\\)',
+             '\\*\\)',
+             ';‑\\]',
+             ';\\]',
+             ';\\^\\)',
+             ':‑,',
+             ';D',
+             ':‑P',
+             ':P',
+             'X‑P',
+             'XP',
+             ':‑Þ',
+             ':Þ',
+             ':b',
+             'd:',
+             '=p',
+             '>:P',
+             ':‑/',
+             ':/',
+             ':-[.]',
+             '>:[(\\\\)]',
+             '>:/',
+             ':[(\\\\)]',
+             '=/',
+             '=[(\\\\)]',
+             ':L',
+             '=L',
+             ':S',
+             ':‑\\|',
+             ':\\|',
+             ':$',
+             ':‑x',
+             ':x',
+             ':‑#',
+             ':#',
+             ':‑&',
+             ':&',
+             'O:‑\\)',
+             'O:\\)',
+             '0:‑3',
+             '0:3',
+             '0:‑\\)',
+             '0:\\)',
+             ':‑b',
+             '0;\\^\\)',
+             '>:‑\\)',
+             '>:\\)',
+             '\\}:‑\\)',
+             '\\}:\\)',
+             '3:‑\\)',
+             '3:\\)',
+             '>;\\)',
+             '\\|;‑\\)',
+             '\\|‑O',
+             ':‑J',
+             '#‑\\)',
+             '%‑\\)',
+             '%\\)',
+             ':-###..',
+             ':###..',
+             '<:‑\\|',
+             '\\(>_<\\)',
+             '\\(>_<\\)>',
+             "\\(';'\\)",
+             '\\(\\^\\^>``',
+             '\\(\\^_\\^;\\)',
+             '\\(-_-;\\)',
+             '\\(~_~;\\) \\(・\\.・;\\)',
+             '\\(-_-\\)zzz',
+             '\\(\\^_-\\)',
+             '\\(\\(\\+_\\+\\)\\)',
+             '\\(\\+o\\+\\)',
+             '\\(o\\|o\\)',
+             '\\^_\\^',
+             '\\(\\^_\\^\\)/',
+             '\\(\\^O\\^\\)／',
+             '\\(\\^o\\^\\)／',
+             '\\(__\\)',
+             '_\\(\\._\\.\\)_',
+             '<\\(_ _\\)>',
+             '<m\\(__\\)m>',
+             'm\\(__\\)m',
+             'm\\(_ _\\)m',
+             "\\('_'\\)",
+             '\\(/_;\\)',
+             '\\(T_T\\) \\(;_;\\)',
+             '\\(;_;',
+             '\\(;_:\\)',
+             '\\(;O;\\)',
+             '\\(:_;\\)',
+             '\\(ToT\\)',
+             ';_;',
+             ';-;',
+             ';n;',
+             ';;',
+             'Q\\.Q',
+             'T\\.T',
+             'QQ',
+             'Q_Q',
+             '\\(-\\.-\\)',
+             '\\(-_-\\)',
+             '\\(一一\\)',
+             '\\(；一_一\\)',
+             '\\(=_=\\)',
+             '\\(=\\^\\·\\^=\\)',
+             '\\(=\\^\\·\\·\\^=\\)',
+             '=_\\^=\t',
+             '\\(\\.\\.\\)',
+             '\\(\\._\\.\\)',
+             '\\^m\\^',
+             '\\(\\・\\・?',
+             '\\(?_?\\)',
+             '>\\^_\\^<',
+             '<\\^!\\^>',
+             '\\^/\\^',
+             '\\（\\*\\^_\\^\\*）',
+             '\\(\\^<\\^\\) \\(\\^\\.\\^\\)',
+             '\\(^\\^\\)',
+             '\\(\\^\\.\\^\\)',
+             '\\(\\^_\\^\\.\\)',
+             '\\(\\^_\\^\\)',
+             '\\(\\^\\^\\)',
+             '\\(\\^J\\^\\)',
+             '\\(\\*\\^\\.\\^\\*\\)',
+             '\\(\\^—\\^\\）',
+             '\\(#\\^\\.\\^#\\)',
+             '\\（\\^—\\^\\）',
+             '\\(;_;\\)/~~~',
+             '\\(\\^\\.\\^\\)/~~~',
+             '\\(-_-\\)/~~~ \\($\\·\\·\\)/~~~',
+             '\\(T_T\\)/~~~',
+             '\\(ToT\\)/~~~',
+             '\\(\\*\\^0\\^\\*\\)',
+             '\\(\\*_\\*\\)',
+             '\\(\\*_\\*;',
+             '\\(\\+_\\+\\) \\(@_@\\)',
+             '\\(\\*\\^\\^\\)v',
+             '\\(\\^_\\^\\)v',
+             '\\(\\(d[-_-]b\\)\\)',
+             '\\(-"-\\)',
+             '\\(ーー;\\)',
+             '\\(\\^0_0\\^\\)',
+             '\\(\\＾ｖ\\＾\\)',
+             '\\(\\＾ｕ\\＾\\)',
+             '\\(\\^\\)o\\(\\^\\)',
+             '\\(\\^O\\^\\)',
+             '\\(\\^o\\^\\)',
+             '\\)\\^o\\^\\(',
+             ':O o_O',
+             'o_0',
+             'o\\.O',
+             '\\(o\\.o\\)',
+             'oO',
+             '\\(\\*￣m￣\\)',
+             '\\(‘A`\\)']
+
+emoticon_pattern = re.compile(u'(' + u'|'.join(v for v in emoticons) + u')')
+emoji_pattern = re.compile("["
+                           u"\U0001F600-\U0001F64F"  # emoticons
+                           u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                           u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                           u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                           u"\U00002702-\U000027B0"
+                           u"\U000024C2-\U0001F251"
+                           "]+", flags=re.UNICODE)
+
+# Shiki smileys
+# https://github.com/shikimori/shikimori/blob/dc637b15a980bc3477b50d50c60d13eb178702c0/app/services/bb_codes/tags/smiley_tag.rb
+smiley_groups = [
+    [':dunno:'],
+    [':)', ':D', ':-D', ':lol:', ':ololo:', ':evil:', '+_+', ':cool:', ':thumbup:', ':yahoo:', ':tea2:', ':star:'],
+    [':oh:', ':shy:', ':shy2:', ':hurray:', ':roll:', ':!:', ':watching:', ':love:', ':love2:', ':bunch:',
+     ':perveted:'],
+    [':very sad:', ':depressed:', ':depressed2:', ':hopeless:', ':very sad2:', ':cry:', ':cry6:',
+     ':Cry2:', ':Cry3:', ':Cry4:'],
+    [':shock:', ':shock2:', ':scream:', ':dont want:', ':noooo:', ':scared:', ':shocked2:', ':shocked3:',
+     ':shocked4:',
+     ':tea shock:', ':frozen3:'],
+    [':angry4:', ':revenge:', ':evil2:', ':twisted:', ':angry:', ':angry3:', ':angry5:', ':angry6:', ':cold:',
+     ':strange4:', ':ball:', ':evil3:'],
+    [':8):', ':oh2:', ':ooph:', ':wink:', ':dunno:', ':dont listen:', ':hypno:', ':advise:', ':bored:',
+     ':disappointment:', ':hunf:'],
+    [':hot:', ':hot2:', ':hot3:', ':stress:', ':strange3:', ':strange2:', ':strange1:', ':Bath2:', ':strange:',
+     ':hope:', ':hope3:', ':diplom:'],
+    [':hi:', ':bye:', ':sleep:', ':bow:', ':Warning:', ':Ban:', ':Im dead:', ':sick:', ':s1:', ':s3:', ':s2:',
+     ':happy_cry:'],
+    [':ill:',
+     ':sad2:',
+     ':bullied:', ':bdl2:',
+     ':Happy Birthday:', ':flute:',
+     ':cry5:',
+     ':gaze:', ':hope2:',
+     ':sleepy:',
+     ':study:', ':study2:', ':study3:', ':gamer:',
+     ':animal:',
+     ':caterpillar:',
+     ':cold2:', ':shocked:', ':frozen:', ':frozen2:', ':kia:', ':interested:',
+     ':happy:',
+     ':happy3:',
+     ':water:', ':dance:', ':liar:', ':prcl:',
+     ':play:',
+     ':s4:', ':s:',
+     ':bath:',
+     ':kiss:', ':whip:', ':relax:', ':smoker:', ':smoker2:', ':bdl:', ':cool2:',
+     ':V:', ':V2:', ':V3:',
+     ':sarcasm:', ':angry2:', ':kya:']
+]
+
+anime_bbcode = re.compile(r'\[anime=?.*?]')
+anime_close_bbcode = re.compile(r'\[/anime]')
+
+manga_bbcode = re.compile(r'\[manga=?.*?]')
+manga_close_bbcode = re.compile(r'\[/manga]')
+
+div_bbcode = re.compile(r'\[div=?.*?]')
+div_close_bbcode = re.compile(r'\[/div]')
+
+spoiler_bbcode = re.compile(r'\[spoiler=?.*?]')
+spoiler_close_bbcode = re.compile(r'\[/spoiler]')
+
+replies_bbcode = re.compile(r'\[replies=[0-9,]+]')
+poster_bbcode = re.compile(r'\[poster=[0-9,]+]')
+
+size_bbcode = re.compile(r'\[size=[0-9]+]')
+size_close_bbcode = re.compile(r'\[/size]')
+
+profile_bbcode = re.compile(r'\[profile=[0-9]+]')
+profile_close_bbcode = re.compile(r'\[/profile]')
+
+person_bbcode = re.compile(r'\[person=[0-9]+(\s[а-яёЁА-Яa-zA-Z0-9-]+)?]')
+person_close_bbcode = re.compile(r'\[/person]')
+
+character_bbcode = re.compile(r'\[character=[0-9]+(\s[а-яёЁА-Яa-zA-Z0-9-]+)?]')
+character_close_bbcode = re.compile(r'\[/character]')
+
+right_bbcode = re.compile(r'\[right]')
+right_close_bbcode = re.compile(r'\[/right]')
+
+quote_bbcode = re.compile(r'\[quote]')
+quote_close_bbcode = re.compile(r'\[/quote]')
+
+img_bbcode = re.compile(r'\[img]')
+img_close_bbcode = re.compile(r'\[/img]')
+
+image_bbcode = re.compile(r'\[image=[0-9]+]')
+
+custom_bbcodes = [
+    anime_bbcode,
+    anime_close_bbcode,
+    manga_bbcode,
+    manga_close_bbcode,
+    spoiler_bbcode,
+    spoiler_close_bbcode,
+    replies_bbcode,
+    image_bbcode,
+    size_bbcode,
+    size_close_bbcode,
+    character_bbcode,
+    character_close_bbcode,
+    right_bbcode,
+    right_close_bbcode,
+    profile_bbcode,
+    profile_close_bbcode,
+    poster_bbcode,
+    img_bbcode,
+    img_close_bbcode,
+    div_bbcode,
+    div_close_bbcode,
+    quote_bbcode,
+    quote_close_bbcode,
+    person_bbcode,
+    person_close_bbcode
+]
+
+ratings = [
+    re.compile(r'[0-9]{1,2}\s?(\\\\|/|из)\s?[0-9]{1,2}'),
+]
